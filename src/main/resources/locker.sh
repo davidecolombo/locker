@@ -5,7 +5,7 @@ me=$(basename "$0")
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 java_home=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
 java_bin=${java_home}/bin/java
-java_jar=${script_dir}/locker-1.0.jar
+java_jar=${script_dir}/locker.jar
 java_class=space.davidecolombo.locker.App
 data_file=${script_dir}/locker.dat
 
