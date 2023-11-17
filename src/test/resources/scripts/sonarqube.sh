@@ -12,7 +12,7 @@ docker run -d --name sonarqube \
   -v sonarqube_extensions:/opt/sonarqube/extensions \
   -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true -p 9000:9000 sonarqube:latest
 docker logs -f sonarqube
-# docker restart  sonarqube
+# docker restart sonarqube
 
 # Once your instance is up and running, Log in to http://localhost:9000 using System Administrator credentials:
 # login: admin

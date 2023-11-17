@@ -6,7 +6,7 @@
     <artifactId>locker</artifactId>
     <version>1.0</version>
     <properties>
-        <project.java.version>11</project.java.version>
+        <project.java.version>17</project.java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
@@ -14,7 +14,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
+            <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -167,14 +167,14 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>space.davidecolombo.locker.App</mainClass>
+                            <mainClass>space.davidecolombo.locker.Locker</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
                     <appendAssemblyId>false</appendAssemblyId>
-                    <finalName>${artifactId}</finalName>
+                    <finalName>${project.artifactId}</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -205,7 +205,7 @@
                                 <resource>
                                     <directory>${project.build.directory}</directory>
                                     <includes>
-                                        <include>${artifactId}.jar</include>
+                                        <include>${project.artifactId}.jar</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>

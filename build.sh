@@ -1,6 +1,5 @@
 #!/bin/bash
 set -euxo pipefail
-
 mvn clean install
 mvn sonar:sonar \
   -Dsonar.projectKey=locker \

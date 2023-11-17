@@ -13,7 +13,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 @SuppressWarnings({"java:S112", "java:S6212"})
-public class App {
+public class Locker {
 
     private static final String CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
     private static final String MESSAGE_DIGEST_ALGORITHM = "SHA-256";
@@ -82,7 +82,7 @@ public class App {
     }
 
     @SuppressWarnings("java:S106")
-    public App(String[] args) throws Exception {
+    public Locker(String[] args) throws Exception {
         new CmdLineParser(this).parseArgument(args);
         if (key.length() == 0) {
             throw new IllegalArgumentException();
@@ -102,6 +102,6 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        new App(args);
+        new Locker(args);
     }
 }
