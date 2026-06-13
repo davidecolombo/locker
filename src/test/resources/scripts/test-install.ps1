@@ -25,16 +25,22 @@ try {
     Copy-Item "$ProjectDir\target\locker.jar"             (Join-Path $TempSourceDir "locker.jar")
     Copy-Item "$ProjectDir\src\main\resources\locker.ps1" (Join-Path $TempSourceDir "locker.ps1")
 
-    # --- install ---
-    & "$ProjectDir\install.ps1" -InstallDir $TempInstallDir -SourceDir $TempSourceDir -SkipEnvUpdate
+    # Stub JRE so install.ps1 copies it without hitting the network
+    $stubJreBin = Join-Path $TempSourceDir "jre\bin"
+    New-Item -ItemType Directory -Force $stubJreBin | Out-Null
+    New-Item -ItemType File (Join-Path $stubJreBin "java.exe") | Out-Null
 
-    Write-Result (Test-Path "$TempInstallDir\locker.jar") "install: locker.jar copied"
-    Write-Result (Test-Path "$TempInstallDir\locker.ps1") "install: locker.ps1 copied"
-    Write-Result (Test-Path "$TempInstallDir\locker.dat") "install: locker.dat created"
-    Write-Result (Test-Path "$TempInstallDir\locker.cmd") "install: locker.cmd shim created"
+    # --- install ---
+    & "$ProjectDir\install.ps1" -InstallDir $TempInstallDir -SourceDir $TempSourceDir -SkipEnvUpdate -SkipJreDownload
+
+    Write-Result (Test-Path "$TempInstallDir\locker.jar")          "install: locker.jar copied"
+    Write-Result (Test-Path "$TempInstallDir\locker.ps1")          "install: locker.ps1 copied"
+    Write-Result (Test-Path "$TempInstallDir\locker.dat")          "install: locker.dat created"
+    Write-Result (Test-Path "$TempInstallDir\locker.cmd")          "install: locker.cmd shim created"
+    Write-Result (Test-Path "$TempInstallDir\jre\bin\java.exe")    "install: jre copied"
 
     # idempotent re-install must not fail or duplicate locker.dat
-    & "$ProjectDir\install.ps1" -InstallDir $TempInstallDir -SourceDir $TempSourceDir -SkipEnvUpdate
+    & "$ProjectDir\install.ps1" -InstallDir $TempInstallDir -SourceDir $TempSourceDir -SkipEnvUpdate -SkipJreDownload
     Write-Result $true "install: idempotent re-run succeeds"
 
     # --- uninstall ---

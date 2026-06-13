@@ -7,9 +7,10 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $JavaJar   = Join-Path $ScriptDir "locker.jar"
 $DataFile  = Join-Path $ScriptDir "locker.dat"
 $JavaClass = "io.github.davidecolombo.locker.Locker"
+$JavaExe   = if (Test-Path "$ScriptDir\jre\bin\java.exe") { "$ScriptDir\jre\bin\java.exe" } else { "java" }
 
 function Invoke-Locker([byte[]]$InputBytes, [string[]]$ExtraArgs) {
-    $psi = New-Object System.Diagnostics.ProcessStartInfo("java")
+    $psi = New-Object System.Diagnostics.ProcessStartInfo($JavaExe)
     $psi.Arguments          = "-cp `"$JavaJar`" $JavaClass --key `"$Key`" $($ExtraArgs -join ' ')"
     $psi.RedirectStandardInput  = $true
     $psi.RedirectStandardOutput = $true

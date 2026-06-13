@@ -1,7 +1,8 @@
 param(
-    [string]$InstallDir    = "$env:LOCALAPPDATA\locker",
-    [string]$SourceDir     = ".\dist",
-    [switch]$SkipEnvUpdate
+    [string]$InstallDir     = "$env:LOCALAPPDATA\locker",
+    [string]$SourceDir      = ".\dist",
+    [switch]$SkipEnvUpdate,
+    [switch]$SkipJreDownload
 )
 
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
@@ -14,6 +15,23 @@ if (-not (Test-Path "$InstallDir\locker.dat")) {
 # cmd shim so "locker" works from any terminal without extension
 $shim = "@echo off`r`npowershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`" %*"
 [System.IO.File]::WriteAllText("$InstallDir\locker.cmd", $shim, [System.Text.Encoding]::ASCII)
+
+# JRE — copy from source dir if already present, otherwise download from Adoptium
+$JreDir = "$InstallDir\jre"
+if (Test-Path "$SourceDir\jre\bin\java.exe") {
+    Copy-Item "$SourceDir\jre" $JreDir -Recurse -Force
+} elseif (-not $SkipJreDownload -and -not (Test-Path "$JreDir\bin\java.exe")) {
+    Write-Host "Downloading Eclipse Temurin JRE 25..."
+    $jreZip = "$env:TEMP\locker-jre-$(Get-Random).zip"
+    $jreTemp = "$env:TEMP\locker-jre-$(Get-Random)"
+    Invoke-WebRequest "https://api.adoptium.net/v3/binary/latest/25/ga/windows/x64/jre/hotspot/normal/eclipse" `
+        -OutFile $jreZip
+    Expand-Archive $jreZip $jreTemp -Force
+    $extracted = Get-ChildItem $jreTemp -Directory | Select-Object -First 1
+    Move-Item $extracted.FullName $JreDir
+    Remove-Item $jreZip, $jreTemp -Recurse -Force -ErrorAction SilentlyContinue
+    Write-Host "JRE installed."
+}
 
 if (-not $SkipEnvUpdate) {
     $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
