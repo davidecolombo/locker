@@ -1,8 +1,12 @@
-#Requires -RunAsAdministrator
-$InstallDir = "C:\ProgramData\locker"
+param(
+    [string]$InstallDir    = "$env:LOCALAPPDATA\locker",
+    [switch]$SkipEnvUpdate
+)
 
 Remove-Item -Recurse -Force $InstallDir -ErrorAction SilentlyContinue
 
-$machinePath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
-$newPath = ($machinePath -split ";" | Where-Object { $_ -ne $InstallDir }) -join ";"
-[Environment]::SetEnvironmentVariable("PATH", $newPath, "Machine")
+if (-not $SkipEnvUpdate) {
+    $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+    $newPath = ($userPath -split ";" | Where-Object { $_ -ne $InstallDir }) -join ";"
+    [Environment]::SetEnvironmentVariable("PATH", $newPath, "User")
+}

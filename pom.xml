@@ -245,9 +245,27 @@
                                 <argument>-ExecutionPolicy</argument>
                                 <argument>Bypass</argument>
                                 <argument>-File</argument>
-                                <argument>${basedir}/src/test/scripts/test-locker.ps1</argument>
+                                <argument>${basedir}/src/test/resources/scripts/test-locker.ps1</argument>
                                 <argument>${project.build.directory}/locker.jar</argument>
                                 <argument>${basedir}/src/main/resources/locker.ps1</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-install-ps1</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>powershell</executable>
+                            <arguments>
+                                <argument>-NoProfile</argument>
+                                <argument>-ExecutionPolicy</argument>
+                                <argument>Bypass</argument>
+                                <argument>-File</argument>
+                                <argument>${basedir}/src/test/resources/scripts/test-install.ps1</argument>
+                                <argument>${basedir}</argument>
                             </arguments>
                         </configuration>
                     </execution>
