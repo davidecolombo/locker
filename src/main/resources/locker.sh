@@ -29,8 +29,8 @@ case ${option} in
   ;;
 *)
 printf "Usage: %s [OPTION] [KEY]\n\
-  -e, --encrypt        printf \"The quick brown fox jumps over the lazy dog\" | %s -e your_key\n\
-  -a, --append         printf \"The quick brown fox jumps over the lazy dog\" | %s -a your_key\n\
+  -e, --encrypt        printf \"secret\" | %s -e your_key\n\
+  -a, --append         printf \"more\" | %s -a your_key\n\
   -d, --decrypt        %s -d your_key\n\
   CTRL + D send the EOF character\n" \
   "${me}" "${me}" "${me}" "${me}"

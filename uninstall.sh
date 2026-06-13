@@ -1,6 +1,8 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
+
 opt_path=/opt/locker
-bin_alias=/bin/locker
-sudo rm -rf ${opt_path}
-sudo rm -rf ${bin_alias}
+bin_alias=/usr/local/bin/locker
+
+sudo rm -rf "${opt_path}"
+sudo rm -f  "${bin_alias}"
