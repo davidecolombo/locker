@@ -1,11 +1,12 @@
 param(
     [Parameter(Position=0)][string]$Option,
-    [Parameter(Position=1)][string]$Key
+    [Parameter(Position=1)][string]$Key,
+    [string]$File
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $JavaJar   = Join-Path $ScriptDir "locker.jar"
-$DataFile  = Join-Path $ScriptDir "locker.dat"
+$DataFile  = if ($File) { $File } else { Join-Path $ScriptDir "locker.dat" }
 $JavaClass = "io.github.davidecolombo.locker.Locker"
 $JavaExe   = if (Test-Path "$ScriptDir\jre\bin\java.exe") { "$ScriptDir\jre\bin\java.exe" } else { "java" }
 
@@ -42,10 +43,11 @@ switch ($Option) {
     }
     default {
         Write-Host @"
-Usage: locker [OPTION] [KEY]
+Usage: locker [OPTION] [KEY] [-File PATH]
   -e, --encrypt   Write-Output "secret" | locker -e your_key
   -a, --append    Write-Output "more"   | locker -a your_key
   -d, --decrypt   locker -d your_key
+  -File           path to the data file (default: locker.dat next to the script)
 "@
     }
 }

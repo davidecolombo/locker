@@ -20,9 +20,10 @@ function Write-Result([bool]$Passed, [string]$Name) {
     }
 }
 
-function Invoke-LockerScript([string]$Option, [string]$Key, [string]$InputText = "") {
+function Invoke-LockerScript([string]$Option, [string]$Key, [string]$InputText = "", [string]$File = "") {
+    $fileArg = if ($File) { " -File `"$File`"" } else { "" }
     $psi = New-Object System.Diagnostics.ProcessStartInfo("powershell")
-    $psi.Arguments            = "-NoProfile -ExecutionPolicy Bypass -File `"$Script`" -Option `"$Option`" -Key `"$Key`""
+    $psi.Arguments            = "-NoProfile -ExecutionPolicy Bypass -File `"$Script`" -Option `"$Option`" -Key `"$Key`"$fileArg"
     $psi.RedirectStandardInput  = $true
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError  = $true
@@ -53,21 +54,34 @@ try {
     Copy-Item $ScriptPath $Script
     New-Item -ItemType File (Join-Path $TempDir "locker.dat") | Out-Null
 
-    # Test 1: encrypt -> decrypt
+    # Test 1: encrypt -> decrypt (default file)
     Invoke-LockerScript "--encrypt" $Key $PlainText | Out-Null
     $decrypted = Invoke-LockerScript "--decrypt" $Key
-    Write-Result ($decrypted -eq $PlainText) "encrypt -> decrypt"
+    Write-Result ($decrypted -eq $PlainText) "encrypt -> decrypt (default file)"
 
-    # Test 2: append -> decrypt
+    # Test 2: append -> decrypt (default file)
     Invoke-LockerScript "--append" $Key $AppendText | Out-Null
     $final = Invoke-LockerScript "--decrypt" $Key
-    Write-Result ($final -eq "$PlainText`n$AppendText") "append -> decrypt"
+    Write-Result ($final -eq "$PlainText`n$AppendText") "append -> decrypt (default file)"
 
     # Test 3: wrong key must be rejected
     $wrongKeyRejected = $false
     try { Invoke-LockerScript "--decrypt" "wrong-key" | Out-Null }
     catch { $wrongKeyRejected = $true }
     Write-Result $wrongKeyRejected "wrong key is rejected"
+
+    # Test 4: encrypt -> decrypt with custom --file
+    $customDat = Join-Path $TempDir "custom.dat"
+    New-Item -ItemType File $customDat | Out-Null
+    Invoke-LockerScript "--encrypt" $Key $PlainText -File $customDat | Out-Null
+    $decryptedCustom = Invoke-LockerScript "--decrypt" $Key -File $customDat
+    Write-Result ($decryptedCustom -eq $PlainText) "encrypt -> decrypt (custom file)"
+
+    # Test 5: custom file is independent from default file
+    $defaultDat = Join-Path $TempDir "locker.dat"
+    Write-Result ((Get-Item $defaultDat).Length -ne (Get-Item $customDat).Length -or
+                  [System.IO.File]::ReadAllBytes($defaultDat) -ne [System.IO.File]::ReadAllBytes($customDat)) `
+        "custom file is independent from default file"
 
 } finally {
     Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue

@@ -1,17 +1,31 @@
 #!/bin/bash
 set -eo pipefail
 
-#me="./$(basename "$0")"
 me=locker
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-java_home=$(dirname "$(dirname "$(readlink -f "$(which java)")")")
-java_bin=${java_home}/bin/java
 java_jar=${script_dir}/locker.jar
 java_class=io.github.davidecolombo.locker.Locker
+
+if [ -x "${script_dir}/jre/bin/java" ]; then
+    java_bin="${script_dir}/jre/bin/java"
+else
+    java_bin=java
+fi
+
+option=""
+key=""
 data_file=${script_dir}/locker.dat
 
-option=$1
-key=$2
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -e|--encrypt|-a|--append|-d|--decrypt)
+            option=$1; shift ;;
+        -f|--file)
+            data_file=$2; shift 2 ;;
+        *)
+            key=$1; shift ;;
+    esac
+done
 
 encrypt_command="${java_bin} -cp ${java_jar} ${java_class} --key ${key}"
 decrypt_command="${java_bin} -cp ${java_jar} ${java_class} --key ${key} --decrypt"
@@ -28,10 +42,11 @@ case ${option} in
     ${decrypt_command} < "${data_file}"
   ;;
 *)
-printf "Usage: %s [OPTION] [KEY]\n\
+printf "Usage: %s [OPTION] [KEY] [--file PATH]\n\
   -e, --encrypt        printf \"secret\" | %s -e your_key\n\
   -a, --append         printf \"more\" | %s -a your_key\n\
   -d, --decrypt        %s -d your_key\n\
+  -f, --file           path to the data file (default: locker.dat next to the script)\n\
   CTRL + D send the EOF character\n" \
   "${me}" "${me}" "${me}" "${me}"
 ;;
