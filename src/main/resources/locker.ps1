@@ -17,6 +17,11 @@ if (-not $Key) {
     finally { [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
 }
 
+if ([string]::IsNullOrEmpty($Key)) {
+    [Console]::Error.WriteLine("Error: passphrase cannot be empty.")
+    exit 1
+}
+
 function Invoke-Locker([byte[]]$InputBytes, [string[]]$ExtraArgs) {
     $psi = New-Object System.Diagnostics.ProcessStartInfo($JavaExe)
     $psi.Arguments           = ("-cp `"$JavaJar`" $JavaClass " + ($ExtraArgs -join ' ')).TrimEnd()

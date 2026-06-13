@@ -33,6 +33,11 @@ if [ -z "${key}" ]; then
     printf '\n' > /dev/tty
 fi
 
+if [ -z "${key}" ]; then
+    printf 'Error: passphrase cannot be empty.\n' >&2
+    exit 1
+fi
+
 write_int32_be() {
     local n=$1
     printf "\\$(printf '%03o' $(( (n >> 24) & 0xFF )))"
@@ -47,14 +52,18 @@ pipe_passphrase() {
 }
 
 java_cmd=("${java_bin}" -cp "${java_jar}" "${java_class}")
+tmp=""
+trap '[ -n "${tmp}" ] && rm -f "${tmp}"' EXIT
 
 case ${option} in
   -e | --encrypt)
-    { pipe_passphrase; cat; } | "${java_cmd[@]}" > "${data_file}"
+    tmp=$(mktemp "${data_file}.XXXXXX")
+    { pipe_passphrase; cat; } | "${java_cmd[@]}" > "${tmp}" && mv "${tmp}" "${data_file}"
   ;;
   -a | --append)
+    tmp=$(mktemp "${data_file}.XXXXXX")
     temp=$( { pipe_passphrase; cat "${data_file}"; } | "${java_cmd[@]}" --decrypt )
-    { pipe_passphrase; printf '%s\n' "${temp}"; cat; } | "${java_cmd[@]}" > "${data_file}"
+    { pipe_passphrase; printf '%s\n' "${temp}"; cat; } | "${java_cmd[@]}" > "${tmp}" && mv "${tmp}" "${data_file}"
   ;;
   -d | --decrypt)
     { pipe_passphrase; cat "${data_file}"; } | "${java_cmd[@]}" --decrypt

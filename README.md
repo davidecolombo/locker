@@ -15,7 +15,7 @@ No Java installation required. The installer bundles its own runtime.
 
 ## Installation
 
-**Windows** -- open a PowerShell window and run:
+**Windows** - open a PowerShell window and run:
 
 ```powershell
 irm https://raw.githubusercontent.com/davidecolombo/locker/main/setup.ps1 | iex
