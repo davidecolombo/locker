@@ -22,6 +22,7 @@ public class Locker {
     private static final int    KEY_BITS              = 256;
     private static final int    SALT_SIZE             = 16;
     private static final int    KDF_ITERATIONS        = 310_000;
+    private static final SecureRandom RNG             = new SecureRandom();
 
     @Option(name = "--key", aliases = {"-k"}, required = true)
     private String key;
@@ -45,9 +46,8 @@ public class Locker {
 
         byte[] salt = new byte[SALT_SIZE];
         byte[] iv   = new byte[blockSize];
-        SecureRandom rng = new SecureRandom();
-        rng.nextBytes(salt);
-        rng.nextBytes(iv);
+        RNG.nextBytes(salt);
+        RNG.nextBytes(iv);
 
         byte[] keyBytes = deriveKey(key, salt);
         SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, SECRET_KEY_ALGORITHM);
@@ -62,7 +62,7 @@ public class Locker {
             return output;
         } finally {
             Arrays.fill(keyBytes, (byte) 0);
-            try { secretKeySpec.destroy(); } catch (Exception ignored) {}
+            try { secretKeySpec.destroy(); } catch (Exception _) { /* SecretKeySpec.destroy() throws on Java 25 */ }
         }
     }
 
@@ -91,14 +91,14 @@ public class Locker {
             return cipher.doFinal(encryptedBytes);
         } finally {
             Arrays.fill(keyBytes, (byte) 0);
-            try { secretKeySpec.destroy(); } catch (Exception ignored) {}
+            try { secretKeySpec.destroy(); } catch (Exception _) { /* SecretKeySpec.destroy() throws on Java 25 */ }
         }
     }
 
     @SuppressWarnings("java:S106")
     public Locker(String[] args) throws Exception {
         new CmdLineParser(this).parseArgument(args);
-        if (key.length() == 0) {
+        if (key.isEmpty()) {
             throw new IllegalArgumentException();
         }
         ByteArrayOutputStream stream = new ByteArrayOutputStream();

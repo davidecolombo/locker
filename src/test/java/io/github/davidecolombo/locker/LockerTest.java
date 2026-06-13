@@ -21,7 +21,6 @@ class LockerTest {
     @Test
     void shouldEncryptAndDecryptBytes() throws Exception {
         byte[] encryptedBytes = Locker.encrypt(PLAIN_TEXT.getBytes(StandardCharsets.UTF_8), KEY);
-        // Files.write(Paths.get(FILE_NAME), encryptedBytes);
         byte[] decryptedBytes = Locker.decrypt(encryptedBytes, KEY);
         String decryptedText = new String(decryptedBytes);
         Assertions.assertEquals(PLAIN_TEXT, decryptedText);
@@ -88,5 +87,20 @@ class LockerTest {
                 () -> new Locker(null));
         Assertions.assertThrows(NullPointerException.class,
                 () -> new Locker(new String[]{"--key", null}));
+    }
+
+    @Test
+    void shouldThrowIllegalArgumentExceptionForShortInput() {
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> Locker.decrypt(new byte[10], KEY));
+    }
+
+    @Test
+    void shouldEncryptViaMain() throws Exception {
+        System.setIn(new ByteArrayInputStream(PLAIN_TEXT.getBytes(StandardCharsets.UTF_8)));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(out));
+        Locker.main(new String[]{"--key", KEY});
+        Assertions.assertTrue(out.size() > 0);
     }
 }
