@@ -2,3 +2,5 @@ locker.iml
 /.idea/
 /target/
 /dist/
+.claude
+CLAUDE.md

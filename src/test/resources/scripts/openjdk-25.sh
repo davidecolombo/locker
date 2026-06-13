@@ -2,7 +2,7 @@
 set -euxo pipefail
 
 sudo apt-get update && sudo apt-get upgrade
-sudo apt-get install openjdk-17-jdk
+sudo apt-get install openjdk-25-jdk
 java -version
 javac -version
 
