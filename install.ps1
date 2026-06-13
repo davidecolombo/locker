@@ -11,15 +11,14 @@ if (-not (Test-Path "$InstallDir\locker.dat")) {
     New-Item -ItemType File "$InstallDir\locker.dat" | Out-Null
 }
 
+# cmd shim so "locker" works from any terminal without extension
+$shim = "@echo off`r`npowershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`" %*"
+[System.IO.File]::WriteAllText("$InstallDir\locker.cmd", $shim, [System.Text.Encoding]::ASCII)
+
 if (-not $SkipEnvUpdate) {
     $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
     if ($userPath -notlike "*$InstallDir*") {
         [Environment]::SetEnvironmentVariable("PATH", "$userPath;$InstallDir", "User")
-    }
-
-    $pathExt = [Environment]::GetEnvironmentVariable("PATHEXT", "User")
-    if (-not $pathExt) { $pathExt = [Environment]::GetEnvironmentVariable("PATHEXT", "Machine") }
-    if ($pathExt -notlike "*.PS1*") {
-        [Environment]::SetEnvironmentVariable("PATHEXT", "$pathExt;.PS1", "User")
+        Write-Host "PATH updated. Open a new terminal to use 'locker'."
     }
 }

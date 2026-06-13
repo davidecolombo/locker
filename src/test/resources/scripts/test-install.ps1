@@ -31,6 +31,7 @@ try {
     Write-Result (Test-Path "$TempInstallDir\locker.jar") "install: locker.jar copied"
     Write-Result (Test-Path "$TempInstallDir\locker.ps1") "install: locker.ps1 copied"
     Write-Result (Test-Path "$TempInstallDir\locker.dat") "install: locker.dat created"
+    Write-Result (Test-Path "$TempInstallDir\locker.cmd") "install: locker.cmd shim created"
 
     # idempotent re-install must not fail or duplicate locker.dat
     & "$ProjectDir\install.ps1" -InstallDir $TempInstallDir -SourceDir $TempSourceDir -SkipEnvUpdate
