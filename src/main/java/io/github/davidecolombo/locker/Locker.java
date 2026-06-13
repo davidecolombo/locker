@@ -1,4 +1,4 @@
-package space.davidecolombo.locker;
+package io.github.davidecolombo.locker;
 
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;

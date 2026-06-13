@@ -6,7 +6,7 @@ param(
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $JavaJar   = Join-Path $ScriptDir "locker.jar"
 $DataFile  = Join-Path $ScriptDir "locker.dat"
-$JavaClass = "space.davidecolombo.locker.Locker"
+$JavaClass = "io.github.davidecolombo.locker.Locker"
 
 function Invoke-Locker([byte[]]$InputBytes, [string[]]$ExtraArgs) {
     $psi = New-Object System.Diagnostics.ProcessStartInfo("java")

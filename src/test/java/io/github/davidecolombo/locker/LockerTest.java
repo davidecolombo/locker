@@ -1,4 +1,4 @@
-package space.davidecolombo.locker;
+package io.github.davidecolombo.locker;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
