@@ -4,22 +4,6 @@ Locker is a command-line tool for keeping sensitive notes safe on your machine.
 Anything you store in it is encrypted before it touches disk, using a passphrase you choose.
 There is no account, no cloud sync, and no configuration file to manage.
 
-## Security
-
-Locker is designed to be minimal. Minimal code means minimal attack surface.
-
-The entire encryption logic is a single Java class with no framework dependencies beyond the JDK's own cryptography provider. There is no network stack, no database, no web interface, and no background process. The tool runs, does its job, and exits.
-
-**What it protects against:** anyone who obtains your `locker.dat` file (through theft, backup access, or disk recovery) cannot read its contents without your passphrase. Brute-forcing the passphrase is expensive by design (310,000 PBKDF2 iterations per attempt).
-
-**Cryptographic choices:**
-- Cipher: AES-256-GCM (authenticated encryption - tampering with the file causes decryption to fail)
-- Key derivation: PBKDF2/HMAC-SHA-256, 310,000 iterations, 16-byte random salt per write
-- IV: 16 random bytes, unique per write
-- Authentication tag: 128 bits
-
-The passphrase is always entered interactively with no echo; it is never passed as a command-line argument and never appears in the system process list.
-
 ## Requirements
 
 | Platform | Requirements |
@@ -93,3 +77,19 @@ curl -sL https://raw.githubusercontent.com/davidecolombo/locker/main/uninstall.s
 
 This removes the install directory and cleans up the PATH entry.
 Your encrypted data file is deleted along with everything else.
+
+## Security
+
+Locker is designed to be minimal. Minimal code means minimal attack surface.
+
+The entire encryption logic is a single Java class with no framework dependencies beyond the JDK's own cryptography provider. There is no network stack, no database, no web interface, and no background process. The tool runs, does its job, and exits.
+
+**What it protects against:** anyone who obtains your `locker.dat` file (through theft, backup access, or disk recovery) cannot read its contents without your passphrase. Brute-forcing the passphrase is expensive by design (310,000 PBKDF2 iterations per attempt).
+
+**Cryptographic choices:**
+- Cipher: AES-256-GCM (authenticated encryption - tampering with the file causes decryption to fail)
+- Key derivation: PBKDF2/HMAC-SHA-256, 310,000 iterations, 16-byte random salt per write
+- IV: 16 random bytes, unique per write
+- Authentication tag: 128 bits
+
+The passphrase is always entered interactively with no echo; it is never passed as a command-line argument and never appears in the system process list.
