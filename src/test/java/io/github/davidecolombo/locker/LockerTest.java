@@ -8,6 +8,7 @@ import javax.crypto.AEADBadTagException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -47,6 +48,34 @@ class LockerTest {
     }
 
     @Test
+    void shouldEncryptAndDecryptViaStdinPassphrase() throws Exception {
+        byte[] passphraseBytes = KEY.getBytes(StandardCharsets.UTF_8);
+        byte[] dataBytes = PLAIN_TEXT.getBytes(StandardCharsets.UTF_8);
+
+        // Encrypt via stdin passphrase protocol
+        ByteBuffer encBuf = ByteBuffer.allocate(4 + passphraseBytes.length + dataBytes.length);
+        encBuf.putInt(passphraseBytes.length);
+        encBuf.put(passphraseBytes);
+        encBuf.put(dataBytes);
+        System.setIn(new ByteArrayInputStream(encBuf.array()));
+        ByteArrayOutputStream encOut = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(encOut));
+        new Locker(new String[]{});
+        byte[] encrypted = encOut.toByteArray();
+
+        // Decrypt via stdin passphrase protocol
+        ByteBuffer decBuf = ByteBuffer.allocate(4 + passphraseBytes.length + encrypted.length);
+        decBuf.putInt(passphraseBytes.length);
+        decBuf.put(passphraseBytes);
+        decBuf.put(encrypted);
+        System.setIn(new ByteArrayInputStream(decBuf.array()));
+        ByteArrayOutputStream decOut = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(decOut));
+        new Locker(new String[]{"--decrypt"});
+        Assertions.assertEquals(PLAIN_TEXT, decOut.toString(StandardCharsets.UTF_8));
+    }
+
+    @Test
     void shouldDecryptFile() throws Exception {
         byte[] encryptedBytes = Files.readAllBytes(Paths.get(FILE_NAME));
         System.setIn(new ByteArrayInputStream(encryptedBytes));
@@ -60,8 +89,6 @@ class LockerTest {
     @Test
     void shouldThrowCmdLineException() {
         Assertions.assertThrows(CmdLineException.class,
-                () -> new Locker(new String[]{}));
-        Assertions.assertThrows(CmdLineException.class,
                 () -> new Locker(new String[]{"--invalid"}));
     }
 
@@ -69,6 +96,10 @@ class LockerTest {
     void shouldThrowIllegalArgumentException() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new Locker(new String[]{"--key", ""}));
+        // zero-length passphrase via stdin protocol
+        System.setIn(new ByteArrayInputStream(new byte[]{0, 0, 0, 0}));
+        Assertions.assertThrows(IllegalArgumentException.class,
+                () -> new Locker(new String[]{}));
     }
 
     @Test

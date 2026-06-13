@@ -9,7 +9,8 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.DataInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
@@ -24,7 +25,7 @@ public class Locker {
     private static final int    KDF_ITERATIONS        = 310_000;
     private static final SecureRandom RNG             = new SecureRandom();
 
-    @Option(name = "--key", aliases = {"-k"}, required = true)
+    @Option(name = "--key", aliases = {"-k"})
     private String key;
 
     @Option(name = "--decrypt", aliases = {"-d"})
@@ -98,21 +99,28 @@ public class Locker {
     @SuppressWarnings("java:S106")
     public Locker(String[] args) throws Exception {
         new CmdLineParser(this).parseArgument(args);
-        if (key.isEmpty()) {
-            throw new IllegalArgumentException();
+
+        DataInputStream dis = new DataInputStream(System.in);
+        ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[256];
+        int len;
+
+        if (key != null) {
+            if (key.isEmpty()) throw new IllegalArgumentException();
+            while ((len = dis.read(buffer, 0, 256)) != -1) dataStream.write(buffer, 0, len);
+        } else {
+            int passphraseLen = dis.readInt();
+            if (passphraseLen <= 0) throw new IllegalArgumentException();
+            byte[] passphraseBytes = new byte[passphraseLen];
+            dis.readFully(passphraseBytes);
+            key = new String(passphraseBytes, StandardCharsets.UTF_8);
+            Arrays.fill(passphraseBytes, (byte) 0);
+            while ((len = dis.read(buffer, 0, 256)) != -1) dataStream.write(buffer, 0, len);
         }
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        int size = 256;
-        byte[] buffer = new byte[size];
-        try (InputStream is = System.in) {
-            int len;
-            while ((len = is.read(buffer, 0, size)) != -1) {
-                stream.write(buffer, 0, len);
-            }
-        }
+
         System.out.write(decrypt
-                ? decrypt(stream.toByteArray(), key)
-                : encrypt(stream.toByteArray(), key));
+                ? decrypt(dataStream.toByteArray(), key)
+                : encrypt(dataStream.toByteArray(), key));
     }
 
     public static void main(String[] args) throws Exception {
