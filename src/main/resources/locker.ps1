@@ -10,6 +10,18 @@ $DataFile  = if ($File) { $File } else { Join-Path $ScriptDir "locker.dat" }
 $JavaClass = "io.github.davidecolombo.locker.Locker"
 $JavaExe   = if (Test-Path "$ScriptDir\jre\bin\java.exe") { "$ScriptDir\jre\bin\java.exe" } else { "java" }
 
+if ($Option -notin @("-e", "--encrypt", "-d", "--decrypt", "-a", "--append")) {
+    Write-Host @"
+Usage: locker [OPTION] [-Key PASSPHRASE] [-File PATH]
+  -e, --encrypt   Write-Output "secret" | locker -e
+  -a, --append    Write-Output "more"   | locker -a
+  -d, --decrypt   locker -d
+  -File           path to the data file (default: locker.dat next to the script)
+  If -Key is omitted, the passphrase is prompted interactively with no echo.
+"@
+    exit 0
+}
+
 if (-not $Key) {
     $secure = Read-Host -Prompt "Passphrase" -AsSecureString
     $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
@@ -56,15 +68,5 @@ switch ($Option) {
             (Invoke-Locker ([System.IO.File]::ReadAllBytes($DataFile)) @("--decrypt")))
         $combined = [System.Text.Encoding]::UTF8.GetBytes($existing + "`n" + [Console]::In.ReadToEnd())
         [System.IO.File]::WriteAllBytes($DataFile, (Invoke-Locker $combined @()))
-    }
-    default {
-        Write-Host @"
-Usage: locker [OPTION] [-Key PASSPHRASE] [-File PATH]
-  -e, --encrypt   Write-Output "secret" | locker -e
-  -a, --append    Write-Output "more"   | locker -a
-  -d, --decrypt   locker -d
-  -File           path to the data file (default: locker.dat next to the script)
-  If -Key is omitted, the passphrase is prompted interactively with no echo.
-"@
     }
 }

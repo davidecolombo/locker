@@ -27,6 +27,21 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+case ${option} in
+  -e|--encrypt|-a|--append|-d|--decrypt) ;;
+  *)
+printf "Usage: %s [OPTION] [PASSPHRASE] [--file PATH]\n\
+  -e, --encrypt        printf \"secret\" | %s -e\n\
+  -a, --append         printf \"more\"   | %s -a\n\
+  -d, --decrypt        %s -d\n\
+  -f, --file           path to the data file (default: locker.dat next to the script)\n\
+  If PASSPHRASE is omitted, it is prompted interactively with no echo.\n\
+  CTRL + D send the EOF character\n" \
+  "${me}" "${me}" "${me}" "${me}"
+    exit 0
+  ;;
+esac
+
 if [ -z "${key}" ]; then
     printf 'Passphrase: ' > /dev/tty
     IFS= read -r -s key < /dev/tty
@@ -68,15 +83,5 @@ case ${option} in
   -d | --decrypt)
     { pipe_passphrase; cat "${data_file}"; } | "${java_cmd[@]}" --decrypt
   ;;
-*)
-printf "Usage: %s [OPTION] [PASSPHRASE] [--file PATH]\n\
-  -e, --encrypt        printf \"secret\" | %s -e\n\
-  -a, --append         printf \"more\"   | %s -a\n\
-  -d, --decrypt        %s -d\n\
-  -f, --file           path to the data file (default: locker.dat next to the script)\n\
-  If PASSPHRASE is omitted, it is prompted interactively with no echo.\n\
-  CTRL + D send the EOF character\n" \
-  "${me}" "${me}" "${me}" "${me}"
-;;
 esac
 exit $?
