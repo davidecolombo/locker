@@ -18,7 +18,12 @@ if [ "${release}" = true ]; then
     if [ -n "$(git status --porcelain)" ]; then
         echo "Working tree is not clean. Commit or stash changes before releasing."; exit 1
     fi
+    # Always (re)release the current commit under the pom.xml version: recreate the
+    # tag on HEAD if it already exists so the release never publishes stale assets.
+    if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+        git tag -d "${tag}"
+    fi
     git tag "${tag}"
-    git push origin "${tag}"
+    git push --force origin "${tag}"
     echo "Tag ${tag} pushed. GitHub Actions will build and publish the release."
 fi
