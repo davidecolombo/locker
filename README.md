@@ -1,4 +1,10 @@
 # Locker
+[![Donate](https://img.shields.io/badge/PayPal-00457C?style=flat&logo=paypal&logoColor=white)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=T9USZAMJHNBBC&lc=IT&item_name=No-IP%20Java%20DNS%20Updater&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donate_SM%2egif%3aNonHosted)
+![Java](https://img.shields.io/badge/Java-ED8B00?style=flat&logo=java&logoColor=white)
+![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?style=flat&logo=powershell&logoColor=white)
+[![CI](https://github.com/davidecolombo/locker/actions/workflows/release.yml/badge.svg)](https://github.com/davidecolombo/locker/actions/workflows/release.yml)
+![Code Size](https://img.shields.io/github/languages/code-size/davidecolombo/locker?style=flat)
+![License](https://img.shields.io/github/license/davidecolombo/locker?style=flat)
 
 Locker is a command-line tool for keeping sensitive notes safe on your machine.
 Anything you store in it is encrypted before it touches disk, using a passphrase you choose.

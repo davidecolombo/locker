@@ -284,5 +284,36 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>unix-integration-tests</id>
+            <activation>
+                <os><family>unix</family></os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-locker-sh</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${basedir}/src/test/resources/scripts/test-locker-sh.sh</argument>
+                                        <argument>${project.build.directory}/locker.jar</argument>
+                                        <argument>${basedir}/src/main/resources/locker.sh</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

@@ -21,15 +21,24 @@ echo "Downloading locker ${tag}..."
 curl -sL "${jar_url}" -o "${temp_dir}/locker.jar"
 curl -sL "${sh_url}"  -o "${temp_dir}/locker.sh"
 
-echo "Downloading Eclipse Temurin JRE 25..."
+echo "Downloading bundled JRE 25..."
 arch=$(uname -m)
 case ${arch} in
-    x86_64)  adoptium_arch=x64 ;;
-    aarch64) adoptium_arch=aarch64 ;;
-    *)        echo "Unsupported architecture: ${arch}"; exit 1 ;;
+    x86_64)
+        jre_url="https://api.adoptium.net/v3/binary/latest/25/ga/linux/x64/jre/hotspot/normal/eclipse" ;;
+    aarch64|arm64)
+        jre_url="https://api.adoptium.net/v3/binary/latest/25/ga/linux/aarch64/jre/hotspot/normal/eclipse" ;;
+    armv7l|armv6l|arm)
+        # Temurin ships no 32-bit ARM build for Java 25; fall back to BellSoft Liberica.
+        jre_url=$(curl -sf "https://api.bell-sw.com/v1/liberica/releases?version-feature=25&os=linux&arch=arm&bitness=32&package-type=tar.gz&bundle-type=jre&fields=downloadUrl" \
+            | grep -o '"downloadUrl":"[^"]*"' | head -1 | grep -o 'https://[^"]*')
+        if [ -z "${jre_url}" ]; then
+            echo "No 32-bit ARM JRE 25 is available to bundle. Use a 64-bit OS or install Java 25 manually."; exit 1
+        fi ;;
+    *)
+        echo "Unsupported architecture: ${arch}"; exit 1 ;;
 esac
-curl -L "https://api.adoptium.net/v3/binary/latest/25/ga/linux/${adoptium_arch}/jre/hotspot/normal/eclipse" \
-    -o "${temp_dir}/jre.tar.gz"
+curl -L "${jre_url}" -o "${temp_dir}/jre.tar.gz"
 tar xzf "${temp_dir}/jre.tar.gz" -C "${temp_dir}"
 extracted=$(find "${temp_dir}" -maxdepth 1 -mindepth 1 -type d | head -1)
 mv "${extracted}" "${temp_dir}/jre"
