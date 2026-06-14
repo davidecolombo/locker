@@ -13,7 +13,6 @@ if (-not (Test-Path "$InstallDir\locker.dat")) {
 }
 
 # cmd shim so "locker" works from any terminal without extension
-# -Option %* ensures the first arg (e.g. -e) is bound as a value, not a PS named parameter
 $shim = "@echo off`r`nif `"%~1`"==`"`" (powershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`") else (powershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`" -Option %*)"
 [System.IO.File]::WriteAllText("$InstallDir\locker.cmd", $shim, [System.Text.Encoding]::ASCII)
 

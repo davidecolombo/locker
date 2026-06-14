@@ -1,7 +1,7 @@
 param(
-    [Parameter(Position=0)][string]$Option,
-    [Parameter(Position=1)][string]$Key,
-    [string]$File
+    [string]$Option = "",
+    [string]$Key    = "",
+    [string]$File   = ""
 )
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -23,10 +23,18 @@ Usage: locker [OPTION] [-Key PASSPHRASE] [-File PATH]
 }
 
 if (-not $Key) {
-    $secure = Read-Host -Prompt "Passphrase" -AsSecureString
-    $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
-    try { $Key = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr) }
-    finally { [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr) }
+    Write-Host -NoNewline "Passphrase: "
+    $Key = ""
+    while ($true) {
+        $info = [Console]::ReadKey($true)
+        if ($info.Key -eq [ConsoleKey]::Enter) { break }
+        if ($info.Key -eq [ConsoleKey]::Backspace) {
+            if ($Key.Length -gt 0) { $Key = $Key.Substring(0, $Key.Length - 1) }
+        } elseif ($info.KeyChar -ne [char]0) {
+            $Key += $info.KeyChar
+        }
+    }
+    Write-Host ""
 }
 
 if ([string]::IsNullOrEmpty($Key)) {
@@ -36,15 +44,13 @@ if ([string]::IsNullOrEmpty($Key)) {
 
 function Invoke-Locker([byte[]]$InputBytes, [string[]]$ExtraArgs) {
     $psi = New-Object System.Diagnostics.ProcessStartInfo($JavaExe)
-    $psi.Arguments           = ("-cp `"$JavaJar`" $JavaClass " + ($ExtraArgs -join ' ')).TrimEnd()
+    $psi.Arguments              = ("-cp `"$JavaJar`" $JavaClass " + ($ExtraArgs -join ' ')).TrimEnd()
     $psi.RedirectStandardInput  = $true
     $psi.RedirectStandardOutput = $true
     $psi.UseShellExecute        = $false
     $proc = [System.Diagnostics.Process]::Start($psi)
     $passphraseBytes = [System.Text.Encoding]::UTF8.GetBytes($Key)
-    $lenBytes = [System.BitConverter]::GetBytes([int32]$passphraseBytes.Length)
-    if ([System.BitConverter]::IsLittleEndian) { [Array]::Reverse($lenBytes) }
-    $payload = $lenBytes + $passphraseBytes + $InputBytes
+    $payload = $passphraseBytes + [byte[]]@(10) + $InputBytes
     $proc.StandardInput.BaseStream.Write($payload, 0, $payload.Length)
     $proc.StandardInput.Close()
     $ms = New-Object System.IO.MemoryStream

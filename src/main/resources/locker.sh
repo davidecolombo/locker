@@ -53,17 +53,8 @@ if [ -z "${key}" ]; then
     exit 1
 fi
 
-write_int32_be() {
-    local n=$1
-    printf "\\$(printf '%03o' $(( (n >> 24) & 0xFF )))"
-    printf "\\$(printf '%03o' $(( (n >> 16) & 0xFF )))"
-    printf "\\$(printf '%03o' $(( (n >> 8)  & 0xFF )))"
-    printf "\\$(printf '%03o' $(( n         & 0xFF )))"
-}
-
 pipe_passphrase() {
-    write_int32_be "${#key}"
-    printf '%s' "${key}"
+    printf '%s\n' "${key}"
 }
 
 java_cmd=("${java_bin}" -cp "${java_jar}" "${java_class}")

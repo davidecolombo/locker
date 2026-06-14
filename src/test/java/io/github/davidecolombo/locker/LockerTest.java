@@ -8,7 +8,6 @@ import javax.crypto.AEADBadTagException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -52,23 +51,24 @@ class LockerTest {
         byte[] passphraseBytes = KEY.getBytes(StandardCharsets.UTF_8);
         byte[] dataBytes = PLAIN_TEXT.getBytes(StandardCharsets.UTF_8);
 
-        // Encrypt via stdin passphrase protocol
-        ByteBuffer encBuf = ByteBuffer.allocate(4 + passphraseBytes.length + dataBytes.length);
-        encBuf.putInt(passphraseBytes.length);
-        encBuf.put(passphraseBytes);
-        encBuf.put(dataBytes);
-        System.setIn(new ByteArrayInputStream(encBuf.array()));
+        // Protocol: passphrase + '\n' + data
+        byte[] encInput = new byte[passphraseBytes.length + 1 + dataBytes.length];
+        System.arraycopy(passphraseBytes, 0, encInput, 0, passphraseBytes.length);
+        encInput[passphraseBytes.length] = '\n';
+        System.arraycopy(dataBytes, 0, encInput, passphraseBytes.length + 1, dataBytes.length);
+
+        System.setIn(new ByteArrayInputStream(encInput));
         ByteArrayOutputStream encOut = new ByteArrayOutputStream();
         System.setOut(new PrintStream(encOut));
         new Locker(new String[]{});
         byte[] encrypted = encOut.toByteArray();
 
-        // Decrypt via stdin passphrase protocol
-        ByteBuffer decBuf = ByteBuffer.allocate(4 + passphraseBytes.length + encrypted.length);
-        decBuf.putInt(passphraseBytes.length);
-        decBuf.put(passphraseBytes);
-        decBuf.put(encrypted);
-        System.setIn(new ByteArrayInputStream(decBuf.array()));
+        byte[] decInput = new byte[passphraseBytes.length + 1 + encrypted.length];
+        System.arraycopy(passphraseBytes, 0, decInput, 0, passphraseBytes.length);
+        decInput[passphraseBytes.length] = '\n';
+        System.arraycopy(encrypted, 0, decInput, passphraseBytes.length + 1, encrypted.length);
+
+        System.setIn(new ByteArrayInputStream(decInput));
         ByteArrayOutputStream decOut = new ByteArrayOutputStream();
         System.setOut(new PrintStream(decOut));
         new Locker(new String[]{"--decrypt"});
@@ -96,8 +96,8 @@ class LockerTest {
     void shouldThrowIllegalArgumentException() {
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new Locker(new String[]{"--key", ""}));
-        // zero-length passphrase via stdin protocol
-        System.setIn(new ByteArrayInputStream(new byte[]{0, 0, 0, 0}));
+        // zero-length passphrase via stdin protocol: just a newline
+        System.setIn(new ByteArrayInputStream(new byte[]{'\n'}));
         Assertions.assertThrows(IllegalArgumentException.class,
                 () -> new Locker(new String[]{}));
     }

@@ -9,7 +9,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -100,22 +99,25 @@ public class Locker {
     public Locker(String[] args) throws Exception {
         new CmdLineParser(this).parseArgument(args);
 
-        DataInputStream dis = new DataInputStream(System.in);
         ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
         byte[] buffer = new byte[256];
         int len;
 
         if (key != null) {
             if (key.isEmpty()) throw new IllegalArgumentException();
-            while ((len = dis.read(buffer, 0, 256)) != -1) dataStream.write(buffer, 0, len);
+            while ((len = System.in.read(buffer, 0, 256)) != -1) dataStream.write(buffer, 0, len);
         } else {
-            int passphraseLen = dis.readInt();
-            if (passphraseLen <= 0) throw new IllegalArgumentException();
-            byte[] passphraseBytes = new byte[passphraseLen];
-            dis.readFully(passphraseBytes);
+            // Protocol: passphrase bytes (UTF-8) terminated by '\n', then binary data
+            ByteArrayOutputStream passphraseStream = new ByteArrayOutputStream();
+            int b;
+            while ((b = System.in.read()) != -1 && b != '\n') {
+                if (b != '\r') passphraseStream.write(b);
+            }
+            byte[] passphraseBytes = passphraseStream.toByteArray();
+            if (passphraseBytes.length == 0) throw new IllegalArgumentException();
             key = new String(passphraseBytes, StandardCharsets.UTF_8);
             Arrays.fill(passphraseBytes, (byte) 0);
-            while ((len = dis.read(buffer, 0, 256)) != -1) dataStream.write(buffer, 0, len);
+            while ((len = System.in.read(buffer, 0, 256)) != -1) dataStream.write(buffer, 0, len);
         }
 
         System.out.write(decrypt
