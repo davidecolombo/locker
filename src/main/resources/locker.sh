@@ -2,7 +2,17 @@
 set -eo pipefail
 
 me=locker
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+# Resolve symlinks so the bundled JRE next to the real script is found even when
+# invoked through /usr/local/bin/locker -> /opt/locker/locker.sh.
+source=${BASH_SOURCE[0]}
+while [ -h "${source}" ]; do
+    dir=$( cd -P "$( dirname "${source}" )" &> /dev/null && pwd )
+    source=$( readlink "${source}" )
+    [[ ${source} != /* ]] && source=${dir}/${source}
+done
+script_dir=$( cd -P "$( dirname "${source}" )" &> /dev/null && pwd )
+
 java_jar=${script_dir}/locker.jar
 java_class=io.github.davidecolombo.locker.Locker
 
