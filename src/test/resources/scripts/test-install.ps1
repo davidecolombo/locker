@@ -34,7 +34,8 @@ try {
     & "$ProjectDir\install.ps1" -InstallDir $TempInstallDir -SourceDir $TempSourceDir -SkipEnvUpdate -SkipJreDownload
 
     Write-Result (Test-Path "$TempInstallDir\locker.jar")          "install: locker.jar copied"
-    Write-Result (Test-Path "$TempInstallDir\locker.ps1")          "install: locker.ps1 copied"
+    Write-Result (Test-Path "$TempInstallDir\locker-run.ps1")      "install: locker-run.ps1 copied"
+    Write-Result (-not (Test-Path "$TempInstallDir\locker.ps1"))   "install: no colliding locker.ps1 in PATH dir"
     Write-Result (Test-Path "$TempInstallDir\locker.dat")          "install: locker.dat created"
     Write-Result (Test-Path "$TempInstallDir\locker.cmd")          "install: locker.cmd shim created"
     Write-Result (Test-Path "$TempInstallDir\jre\bin\java.exe")    "install: jre copied"

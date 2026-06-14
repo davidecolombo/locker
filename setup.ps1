@@ -30,13 +30,15 @@ try {
     Write-Host "Installing to $InstallDir..."
     New-Item -ItemType Directory -Force $InstallDir | Out-Null
     Copy-Item "$TempDir\locker.jar" $InstallDir -Force
-    Copy-Item "$TempDir\locker.ps1" $InstallDir -Force
+    # Install as locker-run.ps1 (not locker.ps1) so "locker" resolves to the cmd
+    # shim and runs as a child process with real stdin redirection. See install.ps1.
+    Copy-Item "$TempDir\locker.ps1" "$InstallDir\locker-run.ps1" -Force
     Copy-Item "$TempDir\jre"        $InstallDir -Recurse -Force
     if (-not (Test-Path "$InstallDir\locker.dat")) {
         New-Item -ItemType File "$InstallDir\locker.dat" | Out-Null
     }
 
-    $shim = "@echo off`r`npowershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`" %*"
+    $shim = "@echo off`r`npowershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker-run.ps1`" %*"
     [System.IO.File]::WriteAllText("$InstallDir\locker.cmd", $shim, [System.Text.Encoding]::ASCII)
 
     $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")

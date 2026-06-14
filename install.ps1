@@ -7,13 +7,22 @@ param(
 
 New-Item -ItemType Directory -Force $InstallDir | Out-Null
 Copy-Item "$SourceDir\locker.jar" $InstallDir -Force
-Copy-Item "$SourceDir\locker.ps1" $InstallDir -Force
+# Install the script as locker-run.ps1, NOT locker.ps1. If a "locker.ps1" sat in a
+# PATH directory, typing "locker" would make PowerShell run the .ps1 in-process,
+# bypassing the cmd shim; piped stdin then arrives via the PowerShell object pipeline
+# instead of OS stdin and is unreadable. A non-colliding name forces "locker" to
+# resolve to locker.cmd (a real child process with proper stdin redirection).
+Copy-Item "$SourceDir\locker.ps1" "$InstallDir\locker-run.ps1" -Force
+# Remove a stale locker.ps1 from older installs so it cannot shadow the cmd shim.
+if (Test-Path "$InstallDir\locker.ps1") {
+    Remove-Item "$InstallDir\locker.ps1" -Force
+}
 if (-not (Test-Path "$InstallDir\locker.dat")) {
     New-Item -ItemType File "$InstallDir\locker.dat" | Out-Null
 }
 
 # cmd shim so "locker" works from any terminal without extension
-$shim = "@echo off`r`nif `"%~1`"==`"`" (powershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`") else (powershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker.ps1`" -Option %*)"
+$shim = "@echo off`r`npowershell -NoProfile -ExecutionPolicy Bypass -File `"%~dp0locker-run.ps1`" %*"
 [System.IO.File]::WriteAllText("$InstallDir\locker.cmd", $shim, [System.Text.Encoding]::ASCII)
 
 # JRE — copy from source dir if already present, otherwise download from Adoptium

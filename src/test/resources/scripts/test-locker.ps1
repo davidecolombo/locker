@@ -83,6 +83,14 @@ try {
                   [System.IO.File]::ReadAllBytes($defaultDat) -ne [System.IO.File]::ReadAllBytes($customDat)) `
         "custom file is independent from default file"
 
+    # Test 6: append must not insert a blank line when entries carry a trailing newline
+    $nlDat = Join-Path $TempDir "newline.dat"
+    New-Item -ItemType File $nlDat | Out-Null
+    Invoke-LockerScript "--encrypt" $Key "alpha`n" -File $nlDat | Out-Null
+    Invoke-LockerScript "--append"  $Key "beta`n"  -File $nlDat | Out-Null
+    $nlResult = Invoke-LockerScript "--decrypt" $Key -File $nlDat
+    Write-Result ($nlResult -eq "alpha`nbeta`n") "append keeps a single newline between entries"
+
 } finally {
     Remove-Item $TempDir -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host ""
